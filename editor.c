@@ -147,3 +147,29 @@ void buffer_insert_line(Buffer *buffer) {
     if (next != NULL)
         line_prepend(next, new_line);
 }
+
+void buffer_move_rel(Buffer *buf, int x, int y) {
+    if (y < 0) {
+        /* Move up */
+        while (buf->cur_line->prev != NULL && y < 0) {
+            buf->cur_line = buf->cur_line->prev;
+            buf->cur_y--;
+            y++;
+        }
+    } else {
+        /* Move down */
+        while (buf->cur_line->next != NULL && y > 0) {
+            buf->cur_line = buf->cur_line->next;
+            buf->cur_y++;
+            y--;
+        }
+    }
+
+    int new_pos = buf->cur_x + x;
+
+    if (new_pos > 0)
+        buf->cur_x = (size_t) new_pos <= buf->cur_line->len ?
+                     new_pos : (int) buf->cur_line->len;
+    else
+        buf->cur_x = new_pos >= 0 ? new_pos : 0;
+}

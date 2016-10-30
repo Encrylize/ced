@@ -27,6 +27,7 @@ Buffer *buffer_new(void);
 void buffer_destroy(Buffer *buffer);
 void buffer_insert(Buffer *buffer, const char *content, size_t len);
 void buffer_insert_line(Buffer *buffer);
+void buffer_move_rel(Buffer *buf, int x, int y);
 
 
 #endif
