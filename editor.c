@@ -48,16 +48,16 @@ Buffer *buffer_new(void) {
     return new_buffer;
 }
 
-void buffer_destroy(Buffer *buffer) {
+void buffer_destroy(Buffer *buf) {
     Line *prev;
 
-    while (buffer->top_line != NULL) {
-        prev = buffer->top_line;
-        buffer->top_line = buffer->top_line->next;
+    while (buf->top_line != NULL) {
+        prev = buf->top_line;
+        buf->top_line = buf->top_line->next;
         line_destroy(prev);
     }
 
-    free(buffer);
+    free(buf);
 }
 
 /* TODO: This code is shoddy and repetitive, but it'll
@@ -133,16 +133,16 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
     }
 }
 
-void buffer_insert_line(Buffer *buffer) {
+void buffer_insert_line(Buffer *buf) {
     Line *new_line = line_new();
-    Line *prev = buffer->cur_line;
+    Line *prev = buf->cur_line;
     Line *next = prev->next;
 
     line_append(prev, new_line);
 
-    buffer->cur_line = new_line;
-    buffer->cur_y++;
-    buffer->cur_x = 0;
+    buf->cur_line = new_line;
+    buf->cur_y++;
+    buf->cur_x = 0;
 
     if (next != NULL)
         line_prepend(next, new_line);

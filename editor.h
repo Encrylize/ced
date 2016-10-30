@@ -24,9 +24,9 @@ void line_append(Line *line1, Line *line2);
 void line_prepend(Line *line1, Line *line2);
 
 Buffer *buffer_new(void);
-void buffer_destroy(Buffer *buffer);
-void buffer_insert(Buffer *buffer, const char *content, size_t len);
-void buffer_insert_line(Buffer *buffer);
+void buffer_destroy(Buffer *buf);
+void buffer_insert(Buffer *buf, const char *content, size_t len);
+void buffer_insert_line(Buffer *buf);
 void buffer_move_rel(Buffer *buf, int x, int y);
 
 
