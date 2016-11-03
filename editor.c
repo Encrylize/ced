@@ -9,8 +9,7 @@ Line *line_new(void) {
     Line *new_line = malloc(sizeof(Line));
 
     if (new_line != NULL) {
-        new_line->content = malloc(1);
-        new_line->content[0] = '\0';
+        new_line->content = calloc(1, 1);
         new_line->next = NULL;
         new_line->prev = NULL;
         new_line->len = 0;
