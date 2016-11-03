@@ -22,12 +22,16 @@ Line *line_new(void);
 void line_destroy(Line *line);
 void line_append(Line *line1, Line *line2);
 void line_prepend(Line *line1, Line *line2);
+void line_insert(Line *line, size_t pos, const char *content, size_t len);
+size_t line_delete(Line *line, size_t pos, size_t len);
 
 Buffer *buffer_new(void);
 void buffer_destroy(Buffer *buf);
 void buffer_insert(Buffer *buf, const char *content, size_t len);
 void buffer_insert_line(Buffer *buf);
 void buffer_move_rel(Buffer *buf, int x, int y);
+void buffer_delete(Buffer *buf, size_t len);
+void buffer_delete_line(Buffer *buf);
 
 
 #endif

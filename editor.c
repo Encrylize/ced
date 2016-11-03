@@ -34,6 +34,41 @@ void line_prepend(Line *line1, Line *line2) {
     line1->prev = line2;
 }
 
+void line_insert(Line *line, size_t pos, const char *content, size_t len) {
+    if (len == 0)
+        /* If len is 0, we'll assume content is null-terminated. */
+        /* NOTE: This behaviour only exists to make testing easier
+         *       and should NOT be relied on for other code, as
+         *       it could possibly get removed in the future.
+         */
+        len = strlen(content);
+
+    size_t new_len = line->len + len;
+    line->content = realloc(line->content, new_len + 1);
+
+    if (line->len > pos)
+        /* If characters are being inserted before
+         * the end of the string, we need to make
+         * room first.
+         */
+        memmove(&line->content[pos + len], &line->content[pos],
+                line->len - pos + 1);
+
+    memcpy(&line->content[pos], content, len);
+    line->len = new_len;
+}
+
+size_t line_delete(Line *line, size_t pos, size_t len) {
+    /* Get the amount of characters we can actually delete. */
+    len -= (int) (len - pos) > 0 ? len - pos : 0;
+
+    memmove(&line->content[pos - len], &line->content[pos],
+            line->len - pos + 1);
+    line->len -= len;
+    line->content = realloc(line->content, line->len + 1);
+
+    return len;
+}
 
 Buffer *buffer_new(void) {
     Buffer *new_buffer = malloc(sizeof(Buffer));
@@ -172,4 +207,43 @@ void buffer_move_rel(Buffer *buf, int x, int y) {
                      new_pos : (int) buf->cur_line->len;
     else
         buf->cur_x = new_pos >= 0 ? new_pos : 0;
+}
+
+void buffer_delete(Buffer *buf, size_t len) {
+    char *leftover = calloc(1, 1);
+    size_t leftover_len = 0;
+
+    while (len > 0 && !(buf->cur_x == 0 && buf->cur_y == 0)) {
+        if (buf->cur_x == 0 && buf->cur_line->prev != NULL) {
+            /* Append the string on the current line to leftover. */
+            leftover_len += strlen(buf->cur_line->content);
+            leftover = realloc(leftover, leftover_len + 1);
+            strcat(leftover, buf->cur_line->content);
+
+            buffer_delete_line(buf);
+            len--;
+        }
+
+        size_t deletion_len = line_delete(buf->cur_line, buf->cur_x, len);
+        len -= deletion_len;
+        buf->cur_x -= deletion_len;
+    }
+
+    line_insert(buf->cur_line, buf->cur_x, leftover, leftover_len);
+    free(leftover);
+}
+
+void buffer_delete_line(Buffer *buf) {
+    Line *prev = buf->cur_line->prev;
+    Line *next = buf->cur_line->next;
+
+    line_destroy(buf->cur_line);
+    buf->cur_line = prev;
+    prev->next = next;
+
+    if (next != NULL)
+        next->prev = prev;
+
+    buf->cur_y--;
+    buf->cur_x = buf->cur_line->len;
 }
