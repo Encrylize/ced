@@ -98,7 +98,7 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
             size_t insertion_len = idx - line_start;
             char *new_line = NULL;
 
-            if (buf->cur_line->len > (size_t) buf->cur_x && ch == '\n') {
+            if (buf->cur_line->len > buf->cur_x && ch == '\n') {
                 /* Copy everything behind the cursor to new_line. */
                 new_line_len = buf->cur_line->len - buf->cur_x;
                 new_line = malloc(new_line_len + 1);
@@ -166,11 +166,11 @@ void buffer_move_rel(Buffer *buf, int x, int y) {
 
     int new_pos = buf->cur_x + x;
 
-    if (new_pos > 0)
+    if (new_pos >= 0)
         buf->cur_x = (size_t) new_pos <= buf->cur_line->len ?
-                     new_pos : (int) buf->cur_line->len;
+                     (size_t) new_pos : buf->cur_line->len;
     else
-        buf->cur_x = new_pos >= 0 ? new_pos : 0;
+        buf->cur_x = 0;
 }
 
 void buffer_delete(Buffer *buf, size_t len) {

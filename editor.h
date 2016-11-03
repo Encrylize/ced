@@ -12,8 +12,8 @@ typedef struct Line {
 } Line;
 
 typedef struct Buffer {
-    int cur_x;
-    int cur_y;
+    size_t cur_x;
+    size_t cur_y;
     Line *top_line;
     Line *cur_line;
 } Buffer;
