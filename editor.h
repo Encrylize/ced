@@ -28,6 +28,7 @@ size_t line_delete(Line *line, size_t pos, size_t len);
 Buffer *buffer_new(void);
 void buffer_destroy(Buffer *buf);
 void buffer_insert(Buffer *buf, const char *content, size_t len);
+void buffer_insert_char(Buffer *buf, const char ch);
 void buffer_insert_line(Buffer *buf);
 void buffer_move_rel(Buffer *buf, int x, int y);
 void buffer_delete(Buffer *buf, size_t len);

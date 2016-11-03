@@ -147,6 +147,10 @@ void buffer_insert_line(Buffer *buf) {
         line_prepend(next, new_line);
 }
 
+void buffer_insert_char(Buffer *buf, char ch) {
+    buffer_insert(buf, &ch, 1);
+}
+
 void buffer_move_rel(Buffer *buf, int x, int y) {
     if (y < 0) {
         /* Move up */
