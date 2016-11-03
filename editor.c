@@ -34,14 +34,6 @@ void line_prepend(Line *line1, Line *line2) {
 }
 
 void line_insert(Line *line, size_t pos, const char *content, size_t len) {
-    if (len == 0)
-        /* If len is 0, we'll assume content is null-terminated. */
-        /* NOTE: This behaviour only exists to make testing easier
-         *       and should NOT be relied on for other code, as
-         *       it could possibly get removed in the future.
-         */
-        len = strlen(content);
-
     size_t new_len = line->len + len;
     line->content = realloc(line->content, new_len + 1);
 
@@ -54,6 +46,7 @@ void line_insert(Line *line, size_t pos, const char *content, size_t len) {
                 line->len - pos + 1);
 
     memcpy(&line->content[pos], content, len);
+    line->content[new_len] = '\0';
     line->len = new_len;
 }
 
@@ -94,72 +87,44 @@ void buffer_destroy(Buffer *buf) {
     free(buf);
 }
 
-/* TODO: This code is shoddy and repetitive, but it'll
- *       do as a placeholder for now. Replace it with
- *       some better code later.
- */
 void buffer_insert(Buffer *buf, const char *content, size_t len) {
     char ch = content[0];
     size_t line_start = 0;
     size_t idx = 0;
 
     while (idx <= len) {
-        size_t new_len;
-        size_t insertion_len;
-
-        if (ch == '\n') {
-            insertion_len = idx - line_start;
-            new_len = buf->cur_x + insertion_len;
+        if (ch == '\n' || idx == len) {
+            size_t new_line_len;
+            size_t insertion_len = idx - line_start;
             char *new_line = NULL;
-            size_t new_line_len = 0;
 
-            if (buf->cur_line->len > (size_t) buf->cur_x) {
-                /* If characters are being inserted before the
-                 * end of the line, we'll push all following
-                 * characters onto a new line.
-                 */
-
+            if (buf->cur_line->len > (size_t) buf->cur_x && ch == '\n') {
+                /* Copy everything behind the cursor to new_line. */
                 new_line_len = buf->cur_line->len - buf->cur_x;
                 new_line = malloc(new_line_len + 1);
                 strcpy(new_line, &buf->cur_line->content[buf->cur_x]);
+                buf->cur_line->len = buf->cur_x;
             }
 
-            buf->cur_line->content = realloc(buf->cur_line->content,
-                                             new_len + 1);
-            memcpy(&buf->cur_line->content[buf->cur_x],
-                   &content[line_start], insertion_len);
-            buf->cur_line->content[new_len] = '\0';
-            buf->cur_line->len = new_len;
-            buffer_insert_line(buf);
-
-            if (new_line_len > 0) {
-                buffer_insert(buf, new_line, new_line_len);
-                free(new_line);
-                buf->cur_x = 0;
-            }
-
-            line_start = idx + 1;
-        } else if (idx == len) {
-            insertion_len = idx - line_start;
-            new_len = buf->cur_line->len + insertion_len;
-            buf->cur_line->content = realloc(buf->cur_line->content,
-                                             new_len + 1);
-
-            if (buf->cur_line->len > (size_t) buf->cur_x)
-                /* Same thing as with a newline, but this time
-                 * we just push the characters forward.
-                 */
-                memmove(&buf->cur_line->content[buf->cur_x + insertion_len],
-                        &buf->cur_line->content[buf->cur_x],
-                        buf->cur_line->len - buf->cur_x);
-
-            memcpy(&buf->cur_line->content[buf->cur_x],
-                   &content[line_start], insertion_len);
-            buf->cur_line->content[new_len] = '\0';
-            buf->cur_line->len = new_len;
+            line_insert(buf->cur_line, buf->cur_x,
+                        &content[line_start], insertion_len);
             buf->cur_x += insertion_len;
 
-            break;
+            if (ch == '\n') {
+                buffer_insert_line(buf);
+                if (new_line != NULL) {
+                    /* Re-insert everything that we popped from
+                     * the previous line onto the new line, then
+                     * reset the cursor.
+                     */
+                    line_insert(buf->cur_line, buf->cur_x,
+                                new_line, new_line_len);
+                    buf->cur_x = 0;
+                    free(new_line);
+                }
+
+                line_start = idx + 1;
+            }
         }
 
         idx++;
