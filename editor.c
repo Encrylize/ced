@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "editor.h"
@@ -214,4 +214,16 @@ void buffer_delete_line(Buffer *buf) {
 
     buf->cur_y--;
     buf->cur_x = buf->cur_line->len;
+}
+
+void buffer_print(Buffer *buf) {
+    printf("Cursor: (%zu, %zu)\n", buf->cur_x, buf->cur_y);
+    printf("Current line: %s\n", buf->cur_line->content);
+    printf("----- Lines -----\n");
+
+    Line *head = buf->top_line;
+    for (int i = 0; head != NULL; i++) {
+        printf("%d. %s\n", i, head->content);
+        head = head->next;
+    }
 }

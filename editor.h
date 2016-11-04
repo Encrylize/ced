@@ -33,6 +33,7 @@ void buffer_insert_line(Buffer *buf);
 void buffer_move_rel(Buffer *buf, int x, int y);
 void buffer_delete(Buffer *buf, size_t len);
 void buffer_delete_line(Buffer *buf);
+void buffer_print(Buffer *buf);
 
 
 #endif
