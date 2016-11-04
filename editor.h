@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+#define buffer_delete_char(buf) buffer_delete(buf, 1)
+
 
 typedef struct Line {
     char *content;
