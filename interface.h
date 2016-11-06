@@ -15,8 +15,7 @@
 
 
 void interface_handle_key(Buffer *buf, int key);
-void interface_redraw_lines(Buffer *buf);
-bool interface_escape_is_pressed(int key);
+void interface_redraw_lines(Buffer *buf, Line *line, size_t y);
 
 
 #endif

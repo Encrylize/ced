@@ -27,36 +27,42 @@ void interface_handle_key(Buffer *buf, int key) {
                  * redraw them.
                  */
                 buffer_delete_char(buf);
-                interface_redraw_lines(buf);
+                interface_redraw_lines(buf, buf->cur_line,
+                                       buf->cur_y - buf->top_y);
             } else {
                 buffer_delete_char(buf);
-                interface_redraw_line(buf->cur_y, buf->cur_line->content);
+                interface_redraw_line(buf->cur_y - buf->top_y,
+                                      buf->cur_line->content);
             }
             break;
         case KEY_ENTER:
         case KEY_ENTER_2:
             buffer_insert_char(buf, '\n');
-            interface_redraw_lines(buf);
+            interface_redraw_lines(buf, buf->cur_line,
+                                   buf->cur_y - buf->top_y);
             break;
         default:
             if (isprint(key)) {
                 buffer_insert_char(buf, (char) key);
-                interface_redraw_line(buf->cur_y, buf->cur_line->content);
+                interface_redraw_line(buf->cur_y - buf->top_y,
+                                      buf->cur_line->content);
             }
     }
 
-    move(buf->cur_y, buf->cur_x);
+    if (buf->redraw) {
+        interface_redraw_lines(buf, buf->top_line, 0);
+        buf->redraw = false;
+    }
+
+    move(buf->cur_y - buf->top_y, buf->cur_x);
     refresh();
 }
 
-void interface_redraw_lines(Buffer *buf) {
-    Line *cur_line = buf->cur_line;
-    size_t max_y = getmaxy(stdscr);
-
-    for (size_t y = buf->cur_y; cur_line != NULL && y <= max_y; y++) {
+void interface_redraw_lines(Buffer *buf, Line *line, size_t y) {
+    for (; line != NULL && y <= buf->max_y; y++) {
         clrtoeol();
-        mvprintw(y, 0, cur_line->content);
-        cur_line = cur_line->next;
+        mvprintw(y, 0, line->content);
+        line = line->next;
     }
 
     clrtobot();
@@ -64,12 +70,13 @@ void interface_redraw_lines(Buffer *buf) {
 
 int main(void) {
     int key;
-    Buffer *buf = buffer_new();
 
     initscr();
     raw();
     noecho();
     keypad(stdscr, true);
+
+    Buffer *buf = buffer_new(getmaxy(stdscr) - 1);
 
     while ((key = getch()) != KEY_ESCAPE)
         interface_handle_key(buf, key);

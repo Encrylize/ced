@@ -62,14 +62,18 @@ size_t line_delete(Line *line, size_t pos, size_t len) {
     return len;
 }
 
-Buffer *buffer_new(void) {
+Buffer *buffer_new(size_t max_y) {
     Buffer *new_buffer = malloc(sizeof(Buffer));
 
     if (new_buffer != NULL) {
         new_buffer->cur_x = 0;
         new_buffer->cur_y = 0;
-        new_buffer->top_line = line_new();
-        new_buffer->cur_line = new_buffer->top_line;
+        new_buffer->top_y = 0;
+        new_buffer->max_y = max_y;
+        new_buffer->root_line = line_new();
+        new_buffer->top_line = new_buffer->root_line;
+        new_buffer->cur_line = new_buffer->root_line;
+        new_buffer->redraw = false;
     }
 
     return new_buffer;
@@ -78,9 +82,9 @@ Buffer *buffer_new(void) {
 void buffer_destroy(Buffer *buf) {
     Line *prev;
 
-    while (buf->top_line != NULL) {
-        prev = buf->top_line;
-        buf->top_line = buf->top_line->next;
+    while (buf->root_line != NULL) {
+        prev = buf->root_line;
+        buf->root_line = buf->root_line->next;
         line_destroy(prev);
     }
 
@@ -139,8 +143,7 @@ void buffer_insert_line(Buffer *buf) {
 
     line_append(prev, new_line);
 
-    buf->cur_line = new_line;
-    buf->cur_y++;
+    buffer_move_rel(buf, 0, 1);
     buf->cur_x = 0;
 
     if (next != NULL)
@@ -167,6 +170,11 @@ void buffer_move_rel(Buffer *buf, int x, int y) {
             y--;
         }
     }
+
+    if (buf->cur_y > (buf->top_y + buf->max_y))
+        buffer_scroll(buf, buf->cur_y - buf->max_y - buf->top_y);
+    else if (buf->cur_y < buf->top_y)
+        buffer_scroll(buf, buf->cur_y - buf->top_y);
 
     int new_pos = buf->cur_x + x;
 
@@ -202,28 +210,49 @@ void buffer_delete(Buffer *buf, size_t len) {
 }
 
 void buffer_delete_line(Buffer *buf) {
-    Line *prev = buf->cur_line->prev;
+    Line *del = buf->cur_line;
     Line *next = buf->cur_line->next;
 
-    line_destroy(buf->cur_line);
-    buf->cur_line = prev;
-    prev->next = next;
+    buffer_move_rel(buf, 0, -1);
+    buf->cur_x = buf->cur_line->len;
+    line_destroy(del);
+    buf->cur_line->next = next;
 
     if (next != NULL)
-        next->prev = prev;
-
-    buf->cur_y--;
-    buf->cur_x = buf->cur_line->len;
+        next->prev = buf->cur_line;
 }
 
 void buffer_print(Buffer *buf) {
     printf("Cursor: (%zu, %zu)\n", buf->cur_x, buf->cur_y);
     printf("Current line: %s\n", buf->cur_line->content);
+    printf("Top line: %s\n", buf->top_line->content);
+    printf("Max Y: %zu\n", buf->max_y);
+    printf("Needs redraw: %s\n", buf->redraw ? "true" : "false");
     printf("----- Lines -----\n");
 
-    Line *head = buf->top_line;
+    Line *head = buf->root_line;
     for (int i = 0; head != NULL; i++) {
         printf("%d. %s\n", i, head->content);
         head = head->next;
     }
+}
+
+void buffer_scroll(Buffer *buf, int y) {
+    if (y < 0) {
+        /* Move up */
+        while (buf->top_line->prev != NULL && y < 0) {
+            buf->top_line = buf->top_line->prev;
+            buf->top_y--;
+            y++;
+        }
+    } else {
+        /* Move down */
+        while (buf->top_line->next != NULL && y > 0) {
+            buf->top_line = buf->top_line->next;
+            buf->top_y++;
+            y--;
+        }
+    }
+
+    buf->redraw = true;
 }
