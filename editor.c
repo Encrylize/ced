@@ -97,7 +97,7 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
     size_t idx = 0;
 
     while (idx <= len) {
-        if (ch == '\n' || idx == len) {
+        if (ch == '\n' || ch == '\0') {
             size_t new_line_len;
             size_t insertion_len = idx - line_start;
             char *new_line = NULL;
@@ -132,7 +132,7 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
         }
 
         idx++;
-        ch = content[idx];
+        ch = idx != len ? content[idx] : '\0';
     }
 }
 
@@ -255,4 +255,27 @@ void buffer_scroll(Buffer *buf, int y) {
     }
 
     buf->redraw = true;
+}
+
+void buffer_read_file(Buffer *buf, FILE *file) {
+    buf->file = file;
+
+    fseek(file, 0, SEEK_END);
+    size_t file_size = ftell(file);
+    rewind(file);
+
+    char *content = malloc(file_size);
+    fread(content, 1, file_size, file);
+
+    buffer_insert(buf, content, file_size);
+    buffer_move_rel(buf, 0, -buf->cur_y);
+
+    free(content);
+}
+
+void buffer_write_file(Buffer *buf, FILE *file) {
+    for (Line *line = buf->root_line; line != NULL; line = line->next) {
+        fputs(line->content, file);
+        fputc('\n', file);
+    }
 }

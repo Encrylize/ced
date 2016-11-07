@@ -41,6 +41,9 @@ void interface_handle_key(Buffer *buf, int key) {
             interface_redraw_lines(buf, buf->cur_line,
                                    buf->cur_y - buf->top_y);
             break;
+        case CTRL('s'):
+            buffer_write_file(buf, buf->file);
+            break;
         default:
             if (isprint(key)) {
                 buffer_insert_char(buf, (char) key);
@@ -61,14 +64,23 @@ void interface_handle_key(Buffer *buf, int key) {
 void interface_redraw_lines(Buffer *buf, Line *line, size_t y) {
     for (; line != NULL && y <= buf->max_y; y++) {
         clrtoeol();
-        mvprintw(y, 0, line->content);
+        /* The string is passed in as an argument to the
+         * format string to escape potential format specifiers
+         * inside the line. I figured this out the hard way.
+         */
+        mvprintw(y, 0, "%s", line->content);
         line = line->next;
     }
 
     clrtobot();
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: ./interface <filename>\n");
+        exit(1);
+    }
+
     int key;
 
     initscr();
@@ -78,12 +90,21 @@ int main(void) {
 
     Buffer *buf = buffer_new(getmaxy(stdscr) - 1);
 
+    FILE *file = fopen(argv[1], "rb");
+    if (file != NULL) {
+        buffer_read_file(buf, file);
+        interface_redraw_lines(buf, buf->root_line, 0);
+        move(0, 0);
+    }
+    buf->file = freopen(NULL, "wb", file);
+
     while ((key = getch()) != KEY_ESCAPE)
         interface_handle_key(buf, key);
 
     endwin();
     buffer_print(buf);
     buffer_destroy(buf);
+    fclose(file);
 
     return 0;
 }
