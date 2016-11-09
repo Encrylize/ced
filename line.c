@@ -5,16 +5,16 @@
 
 
 Line *line_new(void) {
-    Line *new_line = malloc(sizeof(Line));
+    Line *line = malloc(sizeof(Line));
 
-    if (new_line != NULL) {
-        new_line->content = calloc(1, 1);
-        new_line->next = NULL;
-        new_line->prev = NULL;
-        new_line->len = 0;
+    if (line != NULL) {
+        line->content = calloc(1, 1);
+        line->next = NULL;
+        line->prev = NULL;
+        line->len = 0;
     }
 
-    return new_line;
+    return line;
 }
 
 void line_destroy(Line *line) {

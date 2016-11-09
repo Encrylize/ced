@@ -7,20 +7,20 @@
 
 
 Buffer *buffer_new(size_t max_y) {
-    Buffer *new_buffer = malloc(sizeof(Buffer));
+    Buffer *buf = malloc(sizeof(Buffer));
 
-    if (new_buffer != NULL) {
-        new_buffer->cur_x = 0;
-        new_buffer->cur_y = 0;
-        new_buffer->top_y = 0;
-        new_buffer->max_y = max_y;
-        new_buffer->root_line = line_new();
-        new_buffer->top_line = new_buffer->root_line;
-        new_buffer->cur_line = new_buffer->root_line;
-        new_buffer->redraw = false;
+    if (buf != NULL) {
+        buf->cur_x = 0;
+        buf->cur_y = 0;
+        buf->top_y = 0;
+        buf->max_y = max_y;
+        buf->root_line = line_new();
+        buf->top_line = buf->root_line;
+        buf->cur_line = buf->root_line;
+        buf->redraw = false;
     }
 
-    return new_buffer;
+    return buf;
 }
 
 void buffer_destroy(Buffer *buf) {
