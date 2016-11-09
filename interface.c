@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#include "editor.h"
+#include "buffer.h"
 #include "interface.h"
 
 

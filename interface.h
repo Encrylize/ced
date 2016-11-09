@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "editor.h"
+#include "buffer.h"
 
 #define KEY_ESCAPE 27
 #define KEY_ENTER_2 10

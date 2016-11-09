@@ -1,19 +1,13 @@
-#ifndef _EDITOR_H
-#define _EDITOR_H
+#ifndef _BUFFER_H
+#define _BUFFER_H
 
 #include <stdbool.h>
-#include <stdlib.h>
 #include <stdio.h>
+
+#include "line.h"
 
 #define buffer_delete_char(buf) buffer_delete(buf, 1)
 
-
-typedef struct Line {
-    char *content;
-    size_t len;
-    struct Line *prev;
-    struct Line *next;
-} Line;
 
 typedef struct Buffer {
     FILE *file;
@@ -27,12 +21,6 @@ typedef struct Buffer {
     bool redraw;
 } Buffer;
 
-Line *line_new(void);
-void line_destroy(Line *line);
-void line_append(Line *line1, Line *line2);
-void line_prepend(Line *line1, Line *line2);
-void line_insert(Line *line, size_t pos, const char *content, size_t len);
-size_t line_delete(Line *line, size_t pos, size_t len);
 
 Buffer *buffer_new(size_t max_y);
 void buffer_destroy(Buffer *buf);
