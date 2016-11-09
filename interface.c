@@ -42,6 +42,7 @@ void interface_handle_key(Buffer *buf, int key) {
                                    buf->cur_y - buf->top_y);
             break;
         case CTRL('s'):
+            buf->file = freopen(NULL, "wb", buf->file);
             buffer_write_file(buf, buf->file);
             break;
         default:
@@ -96,7 +97,6 @@ int main(int argc, char *argv[]) {
         interface_redraw_lines(buf, buf->root_line, 0);
         move(0, 0);
     }
-    buf->file = freopen(NULL, "wb", file);
 
     while ((key = getch()) != KEY_ESCAPE)
         interface_handle_key(buf, key);
