@@ -220,6 +220,8 @@ void buffer_read_file(Buffer *buf, FILE *file) {
 void buffer_write_file(Buffer *buf, FILE *file) {
     for (Line *line = buf->root_line; line != NULL; line = line->next) {
         fputs(line->content, file);
-        fputc('\n', file);
+
+        if (line->next != NULL)
+            fputc('\n', file);
     }
 }
