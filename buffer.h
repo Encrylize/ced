@@ -21,7 +21,6 @@ typedef struct Buffer {
     bool redraw;
 } Buffer;
 
-
 Buffer *buffer_new(size_t max_y);
 void buffer_destroy(Buffer *buf);
 void buffer_insert(Buffer *buf, const char *content, size_t len);

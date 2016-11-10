@@ -16,8 +16,8 @@ Line *line_new(void);
 void line_destroy(Line *line);
 void line_append(Line *line1, Line *line2);
 void line_prepend(Line *line1, Line *line2);
-void line_insert(Line *line, size_t pos, const char *content, size_t len);
-size_t line_delete(Line *line, size_t pos, size_t len);
+int line_insert(Line *line, size_t pos, const char *content, size_t len);
+int line_delete(Line *line, size_t pos, size_t len, size_t *deletion_len);
 
 
 #endif

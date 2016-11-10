@@ -144,7 +144,8 @@ void buffer_delete(Buffer *buf, size_t len) {
             len--;
         }
 
-        size_t deletion_len = line_delete(buf->cur_line, buf->cur_x, len);
+        size_t deletion_len;
+        line_delete(buf->cur_line, buf->cur_x, len, &deletion_len);
         len -= deletion_len;
         buf->cur_x -= deletion_len;
     }

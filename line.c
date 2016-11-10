@@ -8,10 +8,15 @@ Line *line_new(void) {
     Line *line = malloc(sizeof(Line));
 
     if (line != NULL) {
-        line->content = calloc(1, 1);
         line->next = NULL;
         line->prev = NULL;
         line->len = 0;
+        line->content = calloc(1, 1);
+
+        if (line->content == NULL) {
+            free(line);
+            return NULL;
+        }
     }
 
     return line;
@@ -32,9 +37,14 @@ void line_prepend(Line *line1, Line *line2) {
     line1->prev = line2;
 }
 
-void line_insert(Line *line, size_t pos, const char *content, size_t len) {
+int line_insert(Line *line, size_t pos, const char *content, size_t len) {
     size_t new_len = line->len + len;
-    line->content = realloc(line->content, new_len + 1);
+    char *new_content = realloc(line->content, new_len + 1);
+
+    if (new_content == NULL)
+        return -1;
+
+    line->content = new_content;
 
     if (line->len > pos)
         /* If characters are being inserted before
@@ -47,16 +57,22 @@ void line_insert(Line *line, size_t pos, const char *content, size_t len) {
     memcpy(&line->content[pos], content, len);
     line->content[new_len] = '\0';
     line->len = new_len;
+
+    return 0;
 }
 
-size_t line_delete(Line *line, size_t pos, size_t len) {
+int line_delete(Line *line, size_t pos, size_t len, size_t *deletion_len) {
     /* Get the amount of characters we can actually delete. */
-    len -= (int) (len - pos) > 0 ? len - pos : 0;
+    *deletion_len = len - ((int) (len - pos) > 0 ? len - pos : 0);
+    char *new_content = realloc(line->content, line->len + 1);
 
-    memmove(&line->content[pos - len], &line->content[pos],
+    if (new_content == NULL)
+        return -1;
+
+    line->content = new_content;
+    memmove(&line->content[pos - *deletion_len], &line->content[pos],
             line->len - pos + 1);
-    line->len -= len;
-    line->content = realloc(line->content, line->len + 1);
+    line->len -= *deletion_len;
 
-    return len;
+    return 0;
 }
