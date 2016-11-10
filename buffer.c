@@ -6,14 +6,14 @@
 #include "buffer.h"
 
 
-Buffer *buffer_new(size_t max_y) {
+Buffer *buffer_new(size_t max_cols) {
     Buffer *buf = malloc(sizeof(Buffer));
 
     if (buf != NULL) {
-        buf->cur_x = 0;
-        buf->cur_y = 0;
-        buf->top_y = 0;
-        buf->max_y = max_y;
+        buf->row = 0;
+        buf->col = 0;
+        buf->top_col = 0;
+        buf->max_cols = max_cols;
         buf->root_line = line_new();
         buf->top_line = buf->root_line;
         buf->cur_line = buf->root_line;
@@ -46,17 +46,17 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
             size_t insertion_len = idx - line_start;
             char *new_line = NULL;
 
-            if (buf->cur_line->len > buf->cur_x && ch == '\n') {
+            if (buf->cur_line->len > buf->row && ch == '\n') {
                 /* Copy everything behind the cursor to new_line. */
-                new_line_len = buf->cur_line->len - buf->cur_x;
+                new_line_len = buf->cur_line->len - buf->row;
                 new_line = malloc(new_line_len + 1);
-                strcpy(new_line, &buf->cur_line->content[buf->cur_x]);
-                buf->cur_line->len = buf->cur_x;
+                strcpy(new_line, &buf->cur_line->content[buf->row]);
+                buf->cur_line->len = buf->row;
             }
 
-            line_insert(buf->cur_line, buf->cur_x,
+            line_insert(buf->cur_line, buf->row,
                         &content[line_start], insertion_len);
-            buf->cur_x += insertion_len;
+            buf->row += insertion_len;
 
             if (ch == '\n') {
                 buffer_insert_line(buf);
@@ -65,9 +65,9 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
                      * the previous line onto the new line, then
                      * reset the cursor.
                      */
-                    line_insert(buf->cur_line, buf->cur_x,
+                    line_insert(buf->cur_line, buf->row,
                                 new_line, new_line_len);
-                    buf->cur_x = 0;
+                    buf->row = 0;
                     free(new_line);
                 }
 
@@ -88,7 +88,7 @@ void buffer_insert_line(Buffer *buf) {
     line_append(prev, new_line);
 
     buffer_move_rel(buf, 0, 1);
-    buf->cur_x = 0;
+    buf->row = 0;
 
     if (next != NULL)
         line_prepend(next, new_line);
@@ -98,43 +98,43 @@ void buffer_insert_char(Buffer *buf, char ch) {
     buffer_insert(buf, &ch, 1);
 }
 
-void buffer_move_rel(Buffer *buf, int x, int y) {
-    if (y < 0) {
+void buffer_move_rel(Buffer *buf, int row, int col) {
+    if (col < 0) {
         /* Move up */
-        while (buf->cur_line->prev != NULL && y < 0) {
+        while (buf->cur_line->prev != NULL && col < 0) {
             buf->cur_line = buf->cur_line->prev;
-            buf->cur_y--;
-            y++;
+            buf->col--;
+            col++;
         }
     } else {
         /* Move down */
-        while (buf->cur_line->next != NULL && y > 0) {
+        while (buf->cur_line->next != NULL && col > 0) {
             buf->cur_line = buf->cur_line->next;
-            buf->cur_y++;
-            y--;
+            buf->col++;
+            col--;
         }
     }
 
-    if (buf->cur_y > (buf->top_y + buf->max_y))
-        buffer_scroll(buf, buf->cur_y - buf->max_y - buf->top_y);
-    else if (buf->cur_y < buf->top_y)
-        buffer_scroll(buf, buf->cur_y - buf->top_y);
+    if (buf->col > (buf->top_col + buf->max_cols))
+        buffer_scroll(buf, buf->col - buf->max_cols - buf->top_col);
+    else if (buf->col < buf->top_col)
+        buffer_scroll(buf, buf->col - buf->top_col);
 
-    int new_pos = buf->cur_x + x;
+    int new_pos = buf->row + row;
 
     if (new_pos >= 0)
-        buf->cur_x = (size_t) new_pos <= buf->cur_line->len ?
-                     (size_t) new_pos : buf->cur_line->len;
+        buf->row = (size_t) new_pos <= buf->cur_line->len ?
+                   (size_t) new_pos : buf->cur_line->len;
     else
-        buf->cur_x = 0;
+        buf->row = 0;
 }
 
 void buffer_delete(Buffer *buf, size_t len) {
     char *leftover = calloc(1, 1);
     size_t leftover_len = 0;
 
-    while (len > 0 && !(buf->cur_x == 0 && buf->cur_y == 0)) {
-        if (buf->cur_x == 0 && buf->cur_line->prev != NULL) {
+    while (len > 0 && !(buf->row == 0 && buf->col == 0)) {
+        if (buf->row == 0 && buf->cur_line->prev != NULL) {
             /* Append the string on the current line to leftover. */
             leftover_len += strlen(buf->cur_line->content);
             leftover = realloc(leftover, leftover_len + 1);
@@ -145,12 +145,12 @@ void buffer_delete(Buffer *buf, size_t len) {
         }
 
         size_t deletion_len;
-        line_delete(buf->cur_line, buf->cur_x, len, &deletion_len);
+        line_delete(buf->cur_line, buf->row, len, &deletion_len);
         len -= deletion_len;
-        buf->cur_x -= deletion_len;
+        buf->row -= deletion_len;
     }
 
-    line_insert(buf->cur_line, buf->cur_x, leftover, leftover_len);
+    line_insert(buf->cur_line, buf->row, leftover, leftover_len);
     free(leftover);
 }
 
@@ -159,7 +159,7 @@ void buffer_delete_line(Buffer *buf) {
     Line *next = buf->cur_line->next;
 
     buffer_move_rel(buf, 0, -1);
-    buf->cur_x = buf->cur_line->len;
+    buf->row = buf->cur_line->len;
     line_destroy(del);
     buf->cur_line->next = next;
 
@@ -168,10 +168,10 @@ void buffer_delete_line(Buffer *buf) {
 }
 
 void buffer_print(Buffer *buf) {
-    printf("Cursor: (%zu, %zu)\n", buf->cur_x, buf->cur_y);
+    printf("Cursor: (%zu, %zu)\n", buf->row, buf->col);
     printf("Current line: %s\n", buf->cur_line->content);
     printf("Top line: %s\n", buf->top_line->content);
-    printf("Max Y: %zu\n", buf->max_y);
+    printf("Max Y: %zu\n", buf->max_cols);
     printf("Needs redraw: %s\n", buf->redraw ? "true" : "false");
     printf("----- Lines -----\n");
 
@@ -182,20 +182,20 @@ void buffer_print(Buffer *buf) {
     }
 }
 
-void buffer_scroll(Buffer *buf, int y) {
-    if (y < 0) {
+void buffer_scroll(Buffer *buf, int col) {
+    if (col < 0) {
         /* Move up */
-        while (buf->top_line->prev != NULL && y < 0) {
+        while (buf->top_line->prev != NULL && col < 0) {
             buf->top_line = buf->top_line->prev;
-            buf->top_y--;
-            y++;
+            buf->top_col--;
+            col++;
         }
     } else {
         /* Move down */
-        while (buf->top_line->next != NULL && y > 0) {
+        while (buf->top_line->next != NULL && col > 0) {
             buf->top_line = buf->top_line->next;
-            buf->top_y++;
-            y--;
+            buf->top_col++;
+            col--;
         }
     }
 
@@ -213,7 +213,7 @@ void buffer_read_file(Buffer *buf, FILE *file) {
     fread(content, 1, file_size, file);
 
     buffer_insert(buf, content, file_size);
-    buffer_move_rel(buf, 0, -buf->cur_y);
+    buffer_move_rel(buf, 0, -buf->col);
 
     free(content);
 }

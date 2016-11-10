@@ -21,17 +21,17 @@ void interface_handle_key(Buffer *buf, int key) {
             buffer_move_rel(buf, 0, 1);
             break;
         case KEY_BACKSPACE:
-            if (buf->cur_x == 0) {
+            if (buf->row == 0) {
                 /* Other lines will be affected, because
                  * a newline is being delected, so we'll
                  * redraw them.
                  */
                 buffer_delete_char(buf);
                 interface_redraw_lines(buf, buf->cur_line,
-                                       buf->cur_y - buf->top_y);
+                                       buf->col - buf->top_col);
             } else {
                 buffer_delete_char(buf);
-                interface_redraw_line(buf->cur_y - buf->top_y,
+                interface_redraw_line(buf->col - buf->top_col,
                                       buf->cur_line->content);
             }
             break;
@@ -39,7 +39,7 @@ void interface_handle_key(Buffer *buf, int key) {
         case KEY_ENTER_2:
             buffer_insert_char(buf, '\n');
             interface_redraw_lines(buf, buf->cur_line,
-                                   buf->cur_y - buf->top_y);
+                                   buf->col - buf->top_col);
             break;
         case CTRL('s'):
             buf->file = freopen(NULL, "wb", buf->file);
@@ -48,7 +48,7 @@ void interface_handle_key(Buffer *buf, int key) {
         default:
             if (isprint(key)) {
                 buffer_insert_char(buf, (char) key);
-                interface_redraw_line(buf->cur_y - buf->top_y,
+                interface_redraw_line(buf->col - buf->top_col,
                                       buf->cur_line->content);
             }
     }
@@ -58,18 +58,18 @@ void interface_handle_key(Buffer *buf, int key) {
         buf->redraw = false;
     }
 
-    move(buf->cur_y - buf->top_y, buf->cur_x);
+    move(buf->col - buf->top_col, buf->row);
     refresh();
 }
 
-void interface_redraw_lines(Buffer *buf, Line *line, size_t y) {
-    for (; line != NULL && y <= buf->max_y; y++) {
+void interface_redraw_lines(Buffer *buf, Line *line, size_t col) {
+    for (; line != NULL && col <= buf->max_cols; col++) {
         clrtoeol();
         /* The string is passed in as an argument to the
          * format string to escape potential format specifiers
          * inside the line. I figured this out the hard way.
          */
-        mvprintw(y, 0, "%s", line->content);
+        mvprintw(col, 0, "%s", line->content);
         line = line->next;
     }
 
