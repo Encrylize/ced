@@ -12,7 +12,7 @@ typedef struct Line {
 } Line;
 
 
-Line *line_new(void);
+Line *line_new(const char *content, size_t len);
 void line_destroy(Line *line);
 void line_append(Line *line1, Line *line2);
 void line_prepend(Line *line1, Line *line2);

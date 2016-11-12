@@ -4,19 +4,23 @@
 #include "line.h"
 
 
-Line *line_new(void) {
+Line *line_new(const char *content, size_t len) {
     Line *line = malloc(sizeof(Line));
 
     if (line != NULL) {
         line->next = NULL;
         line->prev = NULL;
-        line->len = 0;
-        line->content = calloc(1, 1);
+        line->len = len;
+        line->content = malloc(len + 1);
 
         if (line->content == NULL) {
             free(line);
             return NULL;
+        } else if (content != NULL) {
+            memcpy(line->content, content, len);
         }
+
+        line->content[len] = '\0';
     }
 
     return line;

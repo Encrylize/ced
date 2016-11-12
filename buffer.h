@@ -20,8 +20,8 @@ typedef struct Buffer {
 Buffer *buffer_new(void);
 void buffer_destroy(Buffer *buf);
 void buffer_insert(Buffer *buf, const char *content, size_t len);
+void buffer_insert_line(Buffer *buf, const char *content, size_t len);
 void buffer_insert_char(Buffer *buf, const char ch);
-void buffer_insert_line(Buffer *buf);
 void buffer_move_rel(Buffer *buf, int row, int col);
 void buffer_delete(Buffer *buf, size_t len);
 void buffer_delete_line(Buffer *buf);

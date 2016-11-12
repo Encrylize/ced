@@ -12,7 +12,7 @@ Buffer *buffer_new(void) {
     if (buf != NULL) {
         buf->row = 0;
         buf->col = 0;
-        buf->root_line = line_new();
+        buf->root_line = line_new(NULL, 0);
         buf->cur_line = buf->root_line;
     }
 
@@ -38,7 +38,7 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
 
     while (idx <= len) {
         if (ch == '\n' || ch == '\0') {
-            size_t new_line_len;
+            size_t new_line_len = 0;
             size_t insertion_len = idx - line_start;
             char *new_line = NULL;
 
@@ -55,17 +55,8 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
             buf->row += insertion_len;
 
             if (ch == '\n') {
-                buffer_insert_line(buf);
-                if (new_line != NULL) {
-                    /* Re-insert everything that we popped from
-                     * the previous line onto the new line, then
-                     * reset the cursor.
-                     */
-                    line_insert(buf->cur_line, buf->row,
-                                new_line, new_line_len);
-                    buf->row = 0;
-                    free(new_line);
-                }
+                buffer_insert_line(buf, new_line, new_line_len);
+                free(new_line);
 
                 line_start = idx + 1;
             }
@@ -76,8 +67,8 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
     }
 }
 
-void buffer_insert_line(Buffer *buf) {
-    Line *new_line = line_new();
+void buffer_insert_line(Buffer *buf, const char *content, size_t len) {
+    Line *new_line = line_new(content, len);
     Line *prev = buf->cur_line;
     Line *next = prev->next;
 
