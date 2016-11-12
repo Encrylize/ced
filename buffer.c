@@ -6,18 +6,14 @@
 #include "buffer.h"
 
 
-Buffer *buffer_new(size_t max_cols) {
+Buffer *buffer_new(void) {
     Buffer *buf = malloc(sizeof(Buffer));
 
     if (buf != NULL) {
         buf->row = 0;
         buf->col = 0;
-        buf->top_col = 0;
-        buf->max_cols = max_cols;
         buf->root_line = line_new();
-        buf->top_line = buf->root_line;
         buf->cur_line = buf->root_line;
-        buf->redraw = false;
     }
 
     return buf;
@@ -115,11 +111,6 @@ void buffer_move_rel(Buffer *buf, int row, int col) {
         }
     }
 
-    if (buf->col > (buf->top_col + buf->max_cols))
-        buffer_scroll(buf, buf->col - buf->max_cols - buf->top_col);
-    else if (buf->col < buf->top_col)
-        buffer_scroll(buf, buf->col - buf->top_col);
-
     int new_pos = buf->row + row;
 
     if (new_pos >= 0)
@@ -170,9 +161,6 @@ void buffer_delete_line(Buffer *buf) {
 void buffer_print(Buffer *buf) {
     printf("Cursor: (%zu, %zu)\n", buf->row, buf->col);
     printf("Current line: %s\n", buf->cur_line->content);
-    printf("Top line: %s\n", buf->top_line->content);
-    printf("Max Y: %zu\n", buf->max_cols);
-    printf("Needs redraw: %s\n", buf->redraw ? "true" : "false");
     printf("----- Lines -----\n");
 
     Line *head = buf->root_line;
@@ -180,26 +168,6 @@ void buffer_print(Buffer *buf) {
         printf("%d. %s\n", i, head->content);
         head = head->next;
     }
-}
-
-void buffer_scroll(Buffer *buf, int col) {
-    if (col < 0) {
-        /* Move up */
-        while (buf->top_line->prev != NULL && col < 0) {
-            buf->top_line = buf->top_line->prev;
-            buf->top_col--;
-            col++;
-        }
-    } else {
-        /* Move down */
-        while (buf->top_line->next != NULL && col > 0) {
-            buf->top_line = buf->top_line->next;
-            buf->top_col++;
-            col--;
-        }
-    }
-
-    buf->redraw = true;
 }
 
 void buffer_read_file(Buffer *buf, FILE *file) {

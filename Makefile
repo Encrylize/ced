@@ -1,11 +1,17 @@
-interface: interface.o buffer.o line.o
-	gcc -lncurses -o interface interface.o buffer.o line.o
+CC=gcc
+CFLAGS=-Wall -Wextra -std=c99 -ftrapv
 
-interface.o: interface.c buffer.h line.h
-	gcc -c interface.c
+interface: interface.o buffer.o line.o view.o
+	$(CC) -lncurses -o interface interface.o buffer.o line.o view.o
+
+interface.o: interface.c buffer.h line.h view.h
+	$(CC) -c interface.c
+
+view.o: view.c view.h buffer.h
+	$(CC) -c view.c
 
 buffer.o: buffer.c buffer.h line.h
-	gcc -c buffer.c
+	$(CC) -c buffer.c
 
 line.o: line.c line.h
-	gcc -c line.c
+	$(CC) -c line.c

@@ -3,77 +3,59 @@
 #include <ctype.h>
 
 #include "buffer.h"
+#include "view.h"
 #include "interface.h"
 
 
-void interface_handle_key(Buffer *buf, int key) {
+void interface_handle_key(View *view, int key) {
     switch (key) {
         case KEY_LEFT:
-            buffer_move_rel(buf, -1, 0);
+            buffer_move_rel(view->buf, -1, 0);
             break;
         case KEY_RIGHT:
-            buffer_move_rel(buf, 1, 0);
+            buffer_move_rel(view->buf, 1, 0);
             break;
         case KEY_UP:
-            buffer_move_rel(buf, 0, -1);
+            buffer_move_rel(view->buf, 0, -1);
             break;
         case KEY_DOWN:
-            buffer_move_rel(buf, 0, 1);
+            buffer_move_rel(view->buf, 0, 1);
             break;
         case KEY_BACKSPACE:
-            if (buf->row == 0) {
+            if (view->buf->row == 0) {
                 /* Other lines will be affected, because
-                 * a newline is being delected, so we'll
+                 * a newline is being deleted, so we'll
                  * redraw them.
                  */
-                buffer_delete_char(buf);
-                interface_redraw_lines(buf, buf->cur_line,
-                                       buf->col - buf->top_col);
+                buffer_delete_char(view->buf);
+                view_redraw_to_bottom(view);
             } else {
-                buffer_delete_char(buf);
-                interface_redraw_line(buf->col - buf->top_col,
-                                      buf->cur_line->content);
+                buffer_delete_char(view->buf);
+                view_redraw_current_line(view);
             }
             break;
         case KEY_ENTER:
         case KEY_ENTER_2:
-            buffer_insert_char(buf, '\n');
-            interface_redraw_lines(buf, buf->cur_line,
-                                   buf->col - buf->top_col);
+            buffer_insert_char(view->buf, '\n');
+            /* Redraw the previous line and everything below. */
+            view_redraw(view, view->buf->cur_line->prev,
+                        view_get_cursor_col(view) - 1);
             break;
         case CTRL('s'):
-            buf->file = freopen(NULL, "wb", buf->file);
-            buffer_write_file(buf, buf->file);
+            view->buf->file = freopen(NULL, "wb", view->buf->file);
+            buffer_write_file(view->buf, view->buf->file);
             break;
         default:
             if (isprint(key)) {
-                buffer_insert_char(buf, (char) key);
-                interface_redraw_line(buf->col - buf->top_col,
-                                      buf->cur_line->content);
+                buffer_insert_char(view->buf, (char) key);
+                view_redraw_current_line(view);
             }
     }
 
-    if (buf->redraw) {
-        interface_redraw_lines(buf, buf->top_line, 0);
-        buf->redraw = false;
-    }
-
-    move(buf->col - buf->top_col, buf->row);
-    refresh();
-}
-
-void interface_redraw_lines(Buffer *buf, Line *line, size_t col) {
-    for (; line != NULL && col <= buf->max_cols; col++) {
-        clrtoeol();
-        /* The string is passed in as an argument to the
-         * format string to escape potential format specifiers
-         * inside the line. I figured this out the hard way.
-         */
-        mvprintw(col, 0, "%s", line->content);
-        line = line->next;
-    }
-
-    clrtobot();
+    if (view_adjust(view))
+        view_redraw_full(view);
+    else
+        view_redraw_cursor(view);
 }
 
 int main(int argc, char *argv[]) {
@@ -87,24 +69,24 @@ int main(int argc, char *argv[]) {
     initscr();
     raw();
     noecho();
-    keypad(stdscr, true);
 
-    Buffer *buf = buffer_new(getmaxy(stdscr) - 1);
+    View *view = view_new(0, 0, 0, 0);
+    keypad(view->win, true);
+    refresh();
 
     FILE *file = fopen(argv[1], "rb");
     if (file != NULL) {
-        buffer_read_file(buf, file);
-        interface_redraw_lines(buf, buf->root_line, 0);
-        move(0, 0);
+        buffer_read_file(view->buf, file);
+        view_redraw_full(view);
     }
 
-    while ((key = getch()) != KEY_ESCAPE)
-        interface_handle_key(buf, key);
+    while ((key = wgetch(view->win)) != KEY_ESCAPE)
+        interface_handle_key(view, key);
 
     endwin();
-    buffer_print(buf);
-    buffer_destroy(buf);
-    fclose(file);
+    buffer_print(view->buf);
+    fclose(view->buf->file);
+    view_destroy(view);
 
     return 0;
 }
