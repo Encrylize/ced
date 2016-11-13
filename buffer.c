@@ -72,13 +72,16 @@ void buffer_insert_line(Buffer *buf, const char *content, size_t len) {
     Line *prev = buf->cur_line;
     Line *next = prev->next;
 
-    line_append(prev, new_line);
+    prev->next = new_line;
+    new_line->prev = prev;
 
     buffer_move_rel(buf, 0, 1);
     buf->row = 0;
 
-    if (next != NULL)
-        line_prepend(next, new_line);
+    if (next != NULL) {
+        next->prev = new_line;
+        new_line->next = next;
+    }
 }
 
 void buffer_insert_char(Buffer *buf, char ch) {

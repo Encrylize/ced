@@ -31,16 +31,6 @@ void line_destroy(Line *line) {
     free(line);
 }
 
-void line_append(Line *line1, Line *line2) {
-    line2->prev = line1;
-    line1->next = line2;
-}
-
-void line_prepend(Line *line1, Line *line2) {
-    line2->next = line1;
-    line1->prev = line2;
-}
-
 int line_insert(Line *line, size_t index, const char *content, size_t len) {
     size_t new_len = line->len + len;
     char *new_content = realloc(line->content, new_len + 1);
