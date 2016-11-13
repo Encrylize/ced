@@ -44,7 +44,7 @@ typedef struct View {
     size_t top_col;
 } View;
 
-View *view_new(int rows, int cols, int begin_col, int begin_row);
+View *view_new(int rows, int cols, int begin_col, int begin_row, char *filename);
 void view_destroy(View *view);
 bool view_adjust(View *view);
 void view_scroll(View *view, int col);

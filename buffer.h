@@ -10,14 +10,14 @@
 
 
 typedef struct Buffer {
-    FILE *file;
+    char *filename;
     size_t row;
     size_t col;
     Line *root_line;
     Line *cur_line;
 } Buffer;
 
-Buffer *buffer_new(void);
+Buffer *buffer_new(char *filename);
 void buffer_destroy(Buffer *buf);
 void buffer_insert(Buffer *buf, const char *content, size_t len);
 void buffer_insert_line(Buffer *buf, const char *content, size_t len);
@@ -26,8 +26,8 @@ void buffer_move_rel(Buffer *buf, int row, int col);
 void buffer_delete(Buffer *buf, size_t len);
 void buffer_delete_line(Buffer *buf);
 void buffer_print(Buffer *buf);
-void buffer_read_file(Buffer *buf, FILE *file);
-void buffer_write_file(Buffer *buf, FILE *file);
+void buffer_read_file(Buffer *buf);
+void buffer_write_file(Buffer *buf);
 
 
 #endif

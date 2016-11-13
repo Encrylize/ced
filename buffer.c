@@ -6,12 +6,13 @@
 #include "buffer.h"
 
 
-Buffer *buffer_new(void) {
+Buffer *buffer_new(char *filename) {
     Buffer *buf = malloc(sizeof(Buffer));
 
     if (buf != NULL) {
         buf->row = 0;
         buf->col = 0;
+        buf->filename = filename;
         buf->root_line = line_new(NULL, 0);
         buf->cur_line = buf->root_line;
     }
@@ -75,8 +76,7 @@ void buffer_insert_line(Buffer *buf, const char *content, size_t len) {
     prev->next = new_line;
     new_line->prev = prev;
 
-    buffer_move_rel(buf, 0, 1);
-    buf->row = 0;
+    buffer_move_rel(buf, -buf->row, 1);
 
     if (next != NULL) {
         next->prev = new_line;
@@ -164,8 +164,8 @@ void buffer_print(Buffer *buf) {
     }
 }
 
-void buffer_read_file(Buffer *buf, FILE *file) {
-    buf->file = file;
+void buffer_read_file(Buffer *buf) {
+    FILE *file = fopen(buf->filename, "r");
 
     fseek(file, 0, SEEK_END);
     size_t file_size = ftell(file);
@@ -178,13 +178,18 @@ void buffer_read_file(Buffer *buf, FILE *file) {
     buffer_move_rel(buf, 0, -buf->col);
 
     free(content);
+    fclose(file);
 }
 
-void buffer_write_file(Buffer *buf, FILE *file) {
+void buffer_write_file(Buffer *buf) {
+    FILE *file = fopen(buf->filename, "w");
+
     for (Line *line = buf->root_line; line != NULL; line = line->next) {
         fputs(line->content, file);
 
         if (line->next != NULL)
             fputc('\n', file);
     }
+
+    fclose(file);
 }

@@ -42,8 +42,7 @@ void interface_handle_key(View *view, int key) {
                         view_get_cursor_col(view) - 1);
             break;
         case CTRL('s'):
-            view->buf->file = freopen(NULL, "wb", view->buf->file);
-            buffer_write_file(view->buf, view->buf->file);
+            buffer_write_file(view->buf);
             break;
         default:
             if (isprint(key)) {
@@ -70,22 +69,18 @@ int main(int argc, char *argv[]) {
     raw();
     noecho();
 
-    View *view = view_new(0, 0, 0, 0);
+    View *view = view_new(0, 0, 0, 0, argv[1]);
     keypad(view->win, true);
     refresh();
 
-    FILE *file = fopen(argv[1], "rb");
-    if (file != NULL) {
-        buffer_read_file(view->buf, file);
-        view_redraw_full(view);
-    }
+    buffer_read_file(view->buf);
+    view_redraw_full(view);
 
     while ((key = wgetch(view->win)) != KEY_ESCAPE)
         interface_handle_key(view, key);
 
     endwin();
     buffer_print(view->buf);
-    fclose(view->buf->file);
     view_destroy(view);
 
     return 0;

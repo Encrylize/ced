@@ -5,11 +5,11 @@
 #include "view.h"
 
 
-View *view_new(int rows, int cols, int begin_col, int begin_row) {
+View *view_new(int rows, int cols, int begin_col, int begin_row, char *filename) {
     View *view = malloc(sizeof(View));
 
     if (view != NULL) {
-        view->buf = buffer_new();
+        view->buf = buffer_new(filename);
 
         if (view->buf == NULL) {
             free(view);
