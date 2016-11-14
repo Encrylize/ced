@@ -2,21 +2,19 @@
 #include <string.h>
 
 #include "line.h"
+#include "alloc.h"
 
 
 Line *line_new(const char *content, size_t len) {
-    Line *line = malloc(sizeof(Line));
+    Line *line = malloc_or_exit(sizeof(Line));
 
     if (line != NULL) {
         line->next = NULL;
         line->prev = NULL;
         line->len = len;
-        line->content = malloc(len + 1);
+        line->content = malloc_or_exit(len + 1);
 
-        if (line->content == NULL) {
-            free(line);
-            return NULL;
-        } else if (content != NULL) {
+        if (content != NULL) {
             memcpy(line->content, content, len);
         }
 
@@ -31,13 +29,9 @@ void line_destroy(Line *line) {
     free(line);
 }
 
-int line_insert(Line *line, size_t index, const char *content, size_t len) {
+void line_insert(Line *line, size_t index, const char *content, size_t len) {
     size_t new_len = line->len + len;
-    char *new_content = realloc(line->content, new_len + 1);
-
-    if (new_content == NULL)
-        return -1;
-
+    char *new_content = realloc_or_exit(line->content, new_len + 1);
     line->content = new_content;
 
     if (line->len > index)
@@ -51,22 +45,17 @@ int line_insert(Line *line, size_t index, const char *content, size_t len) {
     memcpy(&line->content[index], content, len);
     line->content[new_len] = '\0';
     line->len = new_len;
-
-    return 0;
 }
 
-int line_delete(Line *line, size_t index, size_t len, size_t *deletion_len) {
+size_t line_delete(Line *line, size_t index, size_t len) {
     /* Get the amount of characters we can actually delete. */
-    *deletion_len = len - ((int) (len - index) > 0 ? len - index : 0);
-    char *new_content = realloc(line->content, line->len + 1);
-
-    if (new_content == NULL)
-        return -1;
+    len -= (int) (len - index) > 0 ? len - index : 0;
+    char *new_content = realloc_or_exit(line->content, line->len + 1);
 
     line->content = new_content;
-    memmove(&line->content[index - *deletion_len], &line->content[index],
+    memmove(&line->content[index - len], &line->content[index],
             line->len - index + 1);
-    line->len -= *deletion_len;
+    line->len -= len;
 
-    return 0;
+    return len;
 }

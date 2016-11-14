@@ -3,19 +3,14 @@
 
 #include "buffer.h"
 #include "view.h"
+#include "alloc.h"
 
 
 View *view_new(int rows, int cols, int begin_col, int begin_row, char *filename) {
-    View *view = malloc(sizeof(View));
+    View *view = malloc_or_exit(sizeof(View));
 
     if (view != NULL) {
         view->buf = buffer_new(filename);
-
-        if (view->buf == NULL) {
-            free(view);
-            return NULL;
-        }
-
         view->win = newwin(cols, rows, begin_col, begin_row);
         view->top_line = view->buf->root_line;
         view->top_col = 0;

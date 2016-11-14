@@ -4,10 +4,11 @@
 
 #include "line.h"
 #include "buffer.h"
+#include "alloc.h"
 
 
 Buffer *buffer_new(char *filename) {
-    Buffer *buf = malloc(sizeof(Buffer));
+    Buffer *buf = malloc_or_exit(sizeof(Buffer));
 
     if (buf != NULL) {
         buf->row = 0;
@@ -46,7 +47,7 @@ void buffer_insert(Buffer *buf, const char *content, size_t len) {
             if (buf->cur_line->len > buf->row && ch == '\n') {
                 /* Copy everything behind the cursor to new_line. */
                 new_line_len = buf->cur_line->len - buf->row;
-                new_line = malloc(new_line_len + 1);
+                new_line = malloc_or_exit(new_line_len + 1);
                 strcpy(new_line, &buf->cur_line->content[buf->row]);
                 buf->cur_line->len = buf->row;
             }
@@ -122,15 +123,14 @@ void buffer_delete(Buffer *buf, size_t len) {
         if (buf->row == 0 && buf->cur_line->prev != NULL) {
             /* Append the string on the current line to leftover. */
             leftover_len += strlen(buf->cur_line->content);
-            leftover = realloc(leftover, leftover_len + 1);
+            leftover = realloc_or_exit(leftover, leftover_len + 1);
             strcat(leftover, buf->cur_line->content);
 
             buffer_delete_line(buf);
             len--;
         }
 
-        size_t deletion_len;
-        line_delete(buf->cur_line, buf->row, len, &deletion_len);
+        size_t deletion_len = line_delete(buf->cur_line, buf->row, len);
         len -= deletion_len;
         buf->row -= deletion_len;
     }
@@ -171,7 +171,7 @@ void buffer_read_file(Buffer *buf) {
     size_t file_size = ftell(file);
     rewind(file);
 
-    char *content = malloc(file_size);
+    char *content = malloc_or_exit(file_size);
     fread(content, 1, file_size, file);
 
     buffer_insert(buf, content, file_size);

@@ -14,8 +14,8 @@ typedef struct Line {
 
 Line *line_new(const char *content, size_t len);
 void line_destroy(Line *line);
-int line_insert(Line *line, size_t index, const char *content, size_t len);
-int line_delete(Line *line, size_t index, size_t len, size_t *deletion_len);
+void line_insert(Line *line, size_t index, const char *content, size_t len);
+size_t line_delete(Line *line, size_t index, size_t len);
 
 
 #endif
