@@ -4,10 +4,21 @@
 
 #include "buffer.h"
 #include "view.h"
-#include "interface.h"
+
+#define KEY_ESCAPE 27
+#define KEY_ENTER_2 10
+#define CTRL(ch) ((ch) & 037)
+#define set_status(content)                                                   \
+    do {                                                                      \
+        mvwprintw(status, 0, 0, content);                                     \
+        wrefresh(status);                                                     \
+    } while (0)
 
 
-void interface_handle_key(View *view, int key) {
+WINDOW *status;
+View *view;
+
+void handle_key(int key) {
     switch (key) {
         case KEY_LEFT:
             buffer_move_rel(view->buf, -1, 0);
@@ -42,7 +53,10 @@ void interface_handle_key(View *view, int key) {
                         view_get_cursor_col(view) - 1);
             break;
         case CTRL('s'):
-            buffer_write_file(view->buf);
+            if (buffer_write_file(view->buf) == 0)
+                set_status("Saved to file");
+            else
+                set_status("Could not write to file");
             break;
         default:
             if (isprint(key)) {
@@ -57,6 +71,22 @@ void interface_handle_key(View *view, int key) {
         view_redraw_cursor(view);
 }
 
+void init_screen() {
+    initscr();
+    raw();
+    noecho();
+
+    start_color();
+    use_default_colors();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+}
+
+void init_status() {
+    status = newwin(1, 0, getmaxy(stdscr) - 1, 0);
+    wbkgd(status, COLOR_PAIR(1));
+    wrefresh(status);
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         fprintf(stderr, "Usage: ./interface <filename>\n");
@@ -65,22 +95,19 @@ int main(int argc, char *argv[]) {
 
     int key;
 
-    initscr();
-    raw();
-    noecho();
-
-    View *view = view_new(0, 0, 0, 0, argv[1]);
-    keypad(view->win, true);
+    init_screen();
     refresh();
+    init_status();
+    view = view_new(0, getmaxy(stdscr) - 1, 0, 0, argv[1]);
 
-    buffer_read_file(view->buf);
+    if (buffer_read_file(view->buf) != 0)
+        set_status("Could not read file");
     view_redraw_full(view);
 
     while ((key = wgetch(view->win)) != KEY_ESCAPE)
-        interface_handle_key(view, key);
+        handle_key(key);
 
     endwin();
-    buffer_print(view->buf);
     view_destroy(view);
 
     return 0;

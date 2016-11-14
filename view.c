@@ -14,6 +14,7 @@ View *view_new(int rows, int cols, int begin_col, int begin_row, char *filename)
         view->win = newwin(cols, rows, begin_col, begin_row);
         view->top_line = view->buf->root_line;
         view->top_col = 0;
+        keypad(view->win, true);
     }
 
     return view;
