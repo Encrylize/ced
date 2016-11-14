@@ -26,8 +26,8 @@ void buffer_move_rel(Buffer *buf, int row, int col);
 void buffer_delete(Buffer *buf, size_t len);
 void buffer_delete_line(Buffer *buf);
 void buffer_print(Buffer *buf);
-void buffer_read_file(Buffer *buf);
-void buffer_write_file(Buffer *buf);
+int buffer_read_file(Buffer *buf);
+int buffer_write_file(Buffer *buf);
 
 
 #endif

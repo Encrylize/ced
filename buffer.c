@@ -164,8 +164,11 @@ void buffer_print(Buffer *buf) {
     }
 }
 
-void buffer_read_file(Buffer *buf) {
+int buffer_read_file(Buffer *buf) {
     FILE *file = fopen(buf->filename, "r");
+
+    if (file == NULL)
+        return -1;
 
     fseek(file, 0, SEEK_END);
     size_t file_size = ftell(file);
@@ -179,10 +182,15 @@ void buffer_read_file(Buffer *buf) {
 
     free(content);
     fclose(file);
+
+    return 0;
 }
 
-void buffer_write_file(Buffer *buf) {
+int buffer_write_file(Buffer *buf) {
     FILE *file = fopen(buf->filename, "w");
+
+    if (file == NULL)
+        return -1;
 
     for (Line *line = buf->root_line; line != NULL; line = line->next) {
         fputs(line->content, file);
@@ -192,4 +200,5 @@ void buffer_write_file(Buffer *buf) {
     }
 
     fclose(file);
+    return 0;
 }
