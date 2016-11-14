@@ -13,17 +13,6 @@
         wclrtoeol(view->win);                                                 \
     } while (0)
 
-#define view_redraw_current_line(view)                                        \
-    do {                                                                      \
-        view_redraw_line(view, view->buf->cur_line,                           \
-                         view_get_cursor_col(view));                          \
-    } while (0)
-
-#define view_redraw_to_bottom(view)                                           \
-    do {                                                                      \
-        view_redraw(view, view->buf->cur_line, view_get_cursor_col(view));    \
-    } while (0)
-
 #define view_redraw_full(view)                                                \
     do {                                                                      \
         view_redraw(view, view->top_line, 0);                                 \

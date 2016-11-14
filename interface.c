@@ -39,10 +39,12 @@ void handle_key(int key) {
                  * redraw them.
                  */
                 buffer_delete_char(view->buf);
-                view_redraw_to_bottom(view);
+                view_redraw(view, view->buf->cur_line,
+                            view_get_cursor_col(view));
             } else {
                 buffer_delete_char(view->buf);
-                view_redraw_current_line(view);
+                view_redraw_line(view, view->buf->cur_line,
+                                 view_get_cursor_col(view));
             }
             break;
         case KEY_ENTER:
@@ -61,7 +63,8 @@ void handle_key(int key) {
         default:
             if (isprint(key)) {
                 buffer_insert_char(view->buf, (char) key);
-                view_redraw_current_line(view);
+                view_redraw_line(view, view->buf->cur_line,
+                                 view_get_cursor_col(view));
             }
     }
 
