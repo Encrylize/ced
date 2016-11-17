@@ -6,12 +6,13 @@
 #include "view.h"
 
 #define KEY_ESCAPE 27
-#define KEY_ENTER_2 10
 #define CTRL(ch) ((ch) & 037)
-#define set_status(content)                                                   \
+#define set_status(content, ...)                                              \
     do {                                                                      \
-        mvwprintw(status, 0, 0, content);                                     \
+        mvwprintw(status, 0, 0, content, ##__VA_ARGS__);                      \
+        wclrtoeol(status);                                                    \
         wrefresh(status);                                                     \
+        view_redraw_cursor(view);                                             \
     } while (0)
 
 
@@ -47,8 +48,7 @@ void handle_key(int key) {
                                  view_get_cursor_col(view));
             }
             break;
-        case KEY_ENTER:
-        case KEY_ENTER_2:
+        case '\n':
             buffer_insert_char(view->buf, '\n');
             /* Redraw the previous line and everything below. */
             view_redraw(view, view->buf->cur_line->prev,
@@ -67,11 +67,6 @@ void handle_key(int key) {
                                  view_get_cursor_col(view));
             }
     }
-
-    if (view_adjust(view))
-        view_redraw_full(view);
-    else
-        view_redraw_cursor(view);
 }
 
 void init_screen() {
@@ -107,8 +102,14 @@ int main(int argc, char *argv[]) {
         set_status("Could not read file");
     view_redraw_full(view);
 
-    while ((key = wgetch(view->win)) != KEY_ESCAPE)
+    while ((key = wgetch(view->win)) != KEY_ESCAPE) {
         handle_key(key);
+
+        if (view_adjust(view))
+            view_redraw_full(view);
+        else
+            view_redraw_cursor(view);
+    }
 
     endwin();
     view_destroy(view);
