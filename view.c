@@ -80,7 +80,16 @@ void view_redraw_line(View *view, Line *line, int col) {
                   getmaxx(view->win), &line->content[view->top_row]);
     else
         wmove(view->win, col, 0);
-    wclrtoeol(view->win);
+
+    /* If the current line is too long to fit on one
+     * line, the cursor will move down to the next line.
+     * To avoid clearing the next line, we check if it's
+     * still on the right line first.
+     */
+    int x, y;
+    getyx(view->win, y, x);
+    if (y == col)
+        wclrtoeol(view->win);
 }
 
 void view_redraw(View *view, Line *line, int col) {
