@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -std=c99 -ftrapv
+CFLAGS=-Wall -Wextra -Wmisleading-indentation -std=c99 -ftrapv
 
 interface: interface.o buffer.o line.o view.o alloc.o
 	$(CC) -lncurses -o interface interface.o buffer.o line.o view.o alloc.o
