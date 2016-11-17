@@ -1,11 +1,11 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -Wmisleading-indentation -std=c99 -ftrapv
 
-interface: interface.o buffer.o line.o view.o alloc.o
-	$(CC) -lncurses -o interface interface.o buffer.o line.o view.o alloc.o
+ced: ced.o buffer.o line.o view.o alloc.o
+	$(CC) -lncurses -o ced ced.o buffer.o line.o view.o alloc.o
 
-interface.o: interface.c buffer.h line.h view.h alloc.h
-	$(CC) -c interface.c
+ced.o: ced.c buffer.h line.h view.h alloc.h
+	$(CC) -c ced.c
 
 view.o: view.c view.h buffer.h alloc.h
 	$(CC) -c view.c
