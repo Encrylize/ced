@@ -89,6 +89,13 @@ void buffer_insert_char(Buffer *buf, char ch) {
     buffer_insert(buf, &ch, 1);
 }
 
+void buffer_insert_tab(Buffer *buf) {
+    int len = TAB_SIZE - (buf->row % TAB_SIZE);
+    char tab[len];
+    memset(tab, ' ', len);
+    buffer_insert(buf, tab, len);
+}
+
 void buffer_move_rel(Buffer *buf, int row, int col) {
     if (col < 0) {
         /* Move up */
@@ -150,6 +157,20 @@ void buffer_delete_line(Buffer *buf) {
 
     if (next != NULL)
         next->prev = buf->cur_line;
+}
+
+void buffer_delete_spaces(Buffer *buf) {
+    int space_count = 0;
+    size_t row = buf->row;
+
+    while (row > 0 && buf->cur_line->content[row - 1] == ' ') {
+        space_count++;
+        row--;
+        if (space_count == TAB_SIZE || row % TAB_SIZE == 0)
+            break;
+    }
+
+    buffer_delete(buf, space_count);
 }
 
 void buffer_print(Buffer *buf) {

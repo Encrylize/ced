@@ -43,7 +43,10 @@ void handle_key(int key) {
                 view_redraw(view, view->buf->cur_line,
                             view_get_cursor_col(view));
             } else {
-                buffer_delete_char(view->buf);
+                if (view->buf->cur_line->content[view->buf->row - 1] == ' ')
+                    buffer_delete_spaces(view->buf);
+                else
+                    buffer_delete_char(view->buf);
                 view_redraw_line(view, view->buf->cur_line,
                                  view_get_cursor_col(view));
             }
@@ -53,6 +56,11 @@ void handle_key(int key) {
             /* Redraw the previous line and everything below. */
             view_redraw(view, view->buf->cur_line->prev,
                         view_get_cursor_col(view) - 1);
+            break;
+        case '\t':
+            buffer_insert_tab(view->buf);
+            view_redraw_line(view, view->buf->cur_line,
+                             view_get_cursor_col(view));
             break;
         case CTRL('s'):
             if (buffer_write_file(view->buf) == 0)
