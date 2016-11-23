@@ -10,13 +10,11 @@
 Buffer *buffer_new(char *filename) {
     Buffer *buf = malloc_or_exit(sizeof(Buffer));
 
-    if (buf != NULL) {
-        buf->row = 0;
-        buf->col = 0;
-        buf->filename = filename;
-        buf->root_line = line_new(NULL, 0);
-        buf->cur_line = buf->root_line;
-    }
+    buf->row = 0;
+    buf->col = 0;
+    buf->filename = filename;
+    buf->root_line = line_new(NULL, 0);
+    buf->cur_line = buf->root_line;
 
     return buf;
 }

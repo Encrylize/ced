@@ -8,18 +8,12 @@
 Line *line_new(const char *content, size_t len) {
     Line *line = malloc_or_exit(sizeof(Line));
 
-    if (line != NULL) {
-        line->next = NULL;
-        line->prev = NULL;
-        line->len = len;
-        line->content = malloc_or_exit(len + 1);
-
-        if (content != NULL) {
-            memcpy(line->content, content, len);
-        }
-
-        line->content[len] = '\0';
-    }
+    line->next = NULL;
+    line->prev = NULL;
+    line->len = len;
+    line->content = malloc_or_exit(len + 1);
+    line->content[len] = '\0';
+    memcpy(line->content, content, len);
 
     return line;
 }

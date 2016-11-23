@@ -9,13 +9,11 @@
 View *view_new(int rows, int cols, int begin_row, int begin_col, Line *top) {
     View *view = malloc_or_exit(sizeof(View));
 
-    if (view != NULL) {
-        view->win = newwin(cols, rows, begin_col, begin_row);
-        view->top_line = top;
-        view->top_row = 0;
-        view->top_col = 0;
-        keypad(view->win, true);
-    }
+    view->win = newwin(cols, rows, begin_col, begin_row);
+    view->top_line = top;
+    view->top_row = 0;
+    view->top_col = 0;
+    keypad(view->win, true);
 
     return view;
 }
@@ -67,6 +65,9 @@ void view_redraw_line(View *view, Line *line, int col) {
     getyx(view->win, y, x);
     if (y == col)
         wclrtoeol(view->win);
+
+    /* Shut up the compiler about x being unused. */
+    (void) x;
 }
 
 void view_redraw_lines(View *view, Line *line, int col) {
